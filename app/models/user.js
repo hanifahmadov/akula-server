@@ -33,7 +33,9 @@ const userSchema = new mongoose.Schema(
 
 		avatar: {
 			type: String,
-			default: "default_avatar.png",
+			// TODO 
+			// updatet the github express login template also
+			default: "default01.jpeg",
 		},
 
 		blocked: {

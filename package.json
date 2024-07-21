@@ -1,5 +1,5 @@
 {
-	"name": "akula-server",
+	"name": "polarx-server",
 	"version": "0.0.1",
 	"description": "Node.js and Express server for Akula frontend with API endpoints, real-time Socket.IO, and MongoDB integration.",
 	"main": "server.js",
