@@ -29,6 +29,9 @@ const userRoutes = require("./app/routes/user_routes");
 /* WHEN PAGE RELOAD CLIENT KEEPS THE STAYED LOGIN */
 const authRoutes = require("./app/routes/auth_routes");
 
+//# TEST PURPOSE 
+const twitterRoutes = require("./app/routes/twitter_routes");
+
 /* CROSS PLATFORM ACCESS */
 const corsOptions = require("./config/corsOptions");
 
@@ -81,10 +84,16 @@ app.use(requestLogger);
 /* TRY SERVER URL IN THE BROWSER. IF YOU ARE ON LOCAL, TRY localhost:3040  */
 app.get("/", (req, res) => res.json({ message: "welcome to chat akula" }));
 
+
+// # TEST PURPOSE
+app.use(twitterRoutes);
+
+
 /* IMPORTANT */
 /* WHEN PAGE RELOAD OF REFRESH, USER TOKEN GET AUTHENTICATED AND REGENRATED */
 app.use(authRoutes);
 
+/* IMPORTANT */
 /* ALL SING IN-UP-PASSWORD REQUESTS */
 app.use(userRoutes);
 
