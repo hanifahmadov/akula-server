@@ -41,6 +41,8 @@ const storage = multer.diskStorage({
 		/* request object will be passed to the newpost route */
 		req.imagename = filename
 
+		
+
 		/* save the file */
 		cb(null, filename);
 	},

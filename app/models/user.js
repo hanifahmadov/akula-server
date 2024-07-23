@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
 		hashedPassword: {
 			type: String,
 			required: true,
-		}, 
+		},
 
 		username: {
 			type: String,
@@ -33,9 +33,14 @@ const userSchema = new mongoose.Schema(
 
 		avatar: {
 			type: String,
-			// TODO 
+
+			// TODO
 			// updatet the github express login template also
-			default: "default01.jpeg",
+			// default: "default01.jpeg",
+
+			/* NO default is needed, it will added when user will be created. check out user_routes /signup routes */
+			required: true,
+			trim: true,
 		},
 
 		blocked: {
@@ -49,16 +54,18 @@ const userSchema = new mongoose.Schema(
 			trim: true,
 		},
 
-		followers: [{
-			type: [mongoose.Schema.Types.ObjectId],
-			ref: "User",
-			default: [],
-		}],
-		followings: [{
-			type: [mongoose.Schema.Types.ObjectId],
-			ref: "User",
-			default: [],
-		}]
+		followers: [
+			{
+				type: [mongoose.Schema.Types.ObjectId],
+				ref: "User",
+			},
+		],
+		followings: [
+			{
+				type: [mongoose.Schema.Types.ObjectId],
+				ref: "User",
+			},
+		],
 	},
 
 	{

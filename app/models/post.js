@@ -9,7 +9,7 @@ const postSchema = new mongoose.Schema(
 		},
 
 		owner: {
-			type: [mongoose.Schema.Types.ObjectId],
+			type: mongoose.Schema.Types.ObjectId,
 			ref: "User", // Assuming you have a User model
 			required: true,
 		},
@@ -17,6 +17,7 @@ const postSchema = new mongoose.Schema(
 		media: {
 			type: String, // URL or path to the image file
 			required: false, // Optional field
+			default: undefined 
 		},
 
 		likes: [
@@ -26,14 +27,13 @@ const postSchema = new mongoose.Schema(
 			},
 		],
 
-        dislikes: [
+		dislikes: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "User",
 			},
 		],
 
-        
 		comments: [
 			{
 				type: mongoose.Schema.Types.ObjectId,

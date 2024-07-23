@@ -77,6 +77,7 @@ app.use(express.json());
 /* APP READS STATIC FILES SHOWED DIRECTION WITH PATH */
 /* SHOW IMAGE FILES DIRECTORY */
 app.use(express.static(path.join(__dirname, "public/defaults")));
+app.use(express.static(path.join(__dirname, "public/profiles")));
 app.use(express.static(path.join(__dirname, "public/posts")));
 
 /* LOGS EVERY REQUESTS */

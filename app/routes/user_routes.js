@@ -6,15 +6,11 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const asyncHandler = require("express-async-handler");
-const multer  = require('multer')
-const signup_multer = require('../middlewares/signup_multer')
+const multer = require("multer");
+const signup_multer = require("../middlewares/signup_multer");
 
 // imports
-const {
-	BadCredentialsError,
-	BadParamsError,
-	DuplicateKeyError,
-} = require("../../lib/custom_errors");
+const { BadCredentialsError, BadParamsError, DuplicateKeyError } = require("../../lib/custom_errors");
 const User = require("../models/user");
 const chalk = require("chalk");
 // const loginLimitter = require("../middlewares/loginLimiter");
@@ -29,15 +25,23 @@ const router = express.Router();
 // SIGN UP
 router.post(
 	"/signup",
-	signup_multer.single('avatar'),
+	signup_multer.single("avatar"),
 	asyncHandler(async (req, res, next) => {
+		const { email, password, passwordConfirmation, baseurl } = req.body;
 
-		const { email, password, passwordConfirmation } = req.body;
-		const file_avatar = req.filename;
+		/* attached on signup_multer file as filename */
+		const filename = req.filename;
+
+		/* default value based on image/profiles/file name in there */
+		const defaultFilename = "default01.jpeg";
+
+		/* check if avatar image is provided or not */
+		const avatarAddress = filename ? baseurl + "/" + filename : baseurl + "/" + defaultFilename;
+
+		console.log("avatarAddress", avatarAddress);
 
 		// check inputs
-		if (!email || !password || password !== passwordConfirmation)
-			throw new BadParamsError();
+		if (!email || !password || password !== passwordConfirmation) throw new BadParamsError();
 
 		// hash password - returns promise
 		const hashed = await bcrypt.hash(password.toString(), bcryptSaltRounds);
@@ -46,8 +50,8 @@ router.post(
 		const user = await User.create({
 			email,
 			hashedPassword: hashed,
-			username: email.split('@')[0],
-			avatar: file_avatar
+			username: email.split("@")[0],
+			avatar: avatarAddress,
 		});
 
 		// response
@@ -62,7 +66,7 @@ router.post(
 	asyncHandler(async (req, res, next) => {
 		const { password, email, remember } = req.body.credentials;
 
-		console.log('credentislas', req.body.credentials)
+		console.log("credentislas", req.body.credentials);
 
 		// gets user from db
 		const user = await User.findOne({ email });
@@ -70,10 +74,7 @@ router.post(
 		if (!user) throw new BadCredentialsError();
 
 		// check that the password is correct
-		let correctPassword = await bcrypt.compare(
-			password,
-			user.hashedPassword
-		);
+		let correctPassword = await bcrypt.compare(password, user.hashedPassword);
 
 		if (!correctPassword) throw new BadCredentialsError();
 
@@ -90,11 +91,9 @@ router.post(
 		);
 
 		// # generate refresh token
-		const refreshToken = jwt.sign(
-			{ email: user.email },
-			process.env.REFRESH_TOKEN_SECRET,
-			{ expiresIn: remember ? "7d" : '1d' }
-		);
+		const refreshToken = jwt.sign({ email: user.email }, process.env.REFRESH_TOKEN_SECRET, {
+			expiresIn: remember ? "7d" : "1d",
+		});
 
 		// Create secure cookie with refresh token
 		res.cookie("jwt", refreshToken, {
@@ -128,10 +127,7 @@ router.patch(
 		const user = await User.findById(req.user.id);
 
 		// check that the old password is correct
-		const correctPassword = await bcrypt.compare(
-			passwords.old,
-			user.hashedPassword
-		);
+		const correctPassword = await bcrypt.compare(passwords.old, user.hashedPassword);
 
 		if (!passwords.new || !correctPassword) throw new BadParamsError();
 
@@ -180,12 +176,10 @@ router.delete(
 		if (!user) throw new BadCredentialsError();
 
 		user.accessToken = null;
-		
+
 		await user.save();
 
-		console.log(
-			chalk.green("accessToken and signedIn cleared, user saved")
-		);
+		console.log(chalk.green("accessToken and signedIn cleared, user saved"));
 
 		// response
 		res.sendStatus(204); //No content
