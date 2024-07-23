@@ -14,7 +14,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 /* CHECKOUT DB FILE, THE URL OR DB CONNECTION IS READING .ENV FILE */
 const db = require("./config/db");
 
-/* PASSPORT  */
+/* PASSPORT MIDDLEWARE */
 const auth = require("./lib/auth");
 
 /* ERROR HANDLERS */
@@ -29,8 +29,8 @@ const userRoutes = require("./app/routes/user_routes");
 /* WHEN PAGE RELOAD CLIENT KEEPS THE STAYED LOGIN */
 const authRoutes = require("./app/routes/auth_routes");
 
-//# TEST PURPOSE 
-const twitterRoutes = require("./app/routes/twitter_routes");
+/* POST ROUTES */
+const postRoutes = require("./app/routes/post_routes");
 
 /* CROSS PLATFORM ACCESS */
 const corsOptions = require("./config/corsOptions");
@@ -73,20 +73,20 @@ app.use(auth);
 
 /* JSON FILES HANDLER BUILT-IN */
 app.use(express.json());
+
 /* APP READS STATIC FILES SHOWED DIRECTION WITH PATH */
+/* SHOW IMAGE FILES DIRECTORY */
 app.use(express.static(path.join(__dirname, "public/defaults")));
-app.use(express.static(path.join(__dirname, "public/profile_avatars")));
+app.use(express.static(path.join(__dirname, "public/posts")));
 
 /* LOGS EVERY REQUESTS */
 app.use(requestLogger);
 
+app.use(postRoutes);
+
 /* FOR TEST PERPUSES */
 /* TRY SERVER URL IN THE BROWSER. IF YOU ARE ON LOCAL, TRY localhost:3040  */
 app.get("/", (req, res) => res.json({ message: "welcome to chat akula" }));
-
-
-// # TEST PURPOSE
-app.use(twitterRoutes);
 
 
 /* IMPORTANT */
@@ -96,6 +96,10 @@ app.use(authRoutes);
 /* IMPORTANT */
 /* ALL SING IN-UP-PASSWORD REQUESTS */
 app.use(userRoutes);
+
+/* IMPORTANT */
+/* ALL POSTS REQUESTS */
+// app.use(postRoutes);
 
 /* IMPORTANT */
 /* ERROR HANDLER AT THE END */

@@ -15,19 +15,29 @@ const storage = multer.diskStorage({
 		const rootDir = path.dirname(require.main.filename);
 		const dir = rootDir + "/public/profiles/";
 
+
+
+		/* deleting the previous image */
+		/* if user update his profile image, we haveto delete the prevoius one  */
+
+		/* get the user email address which is unique */
 		const filename = req.body.email.split("@")[0];
+		/* get all the image files */
 		const existingFiles = fs.readdirSync(dir);
 
+		/* iterate all uplaoded image file and delete the image which name start with user email */
 		existingFiles.forEach((file) => {
 			if (file.startsWith(filename)) {
 				fs.unlinkSync(dir + file);
 			}
 		});
 
+		/* then create the folder */
 		fs.mkdirSync(dir, { recursive: true }, (err) => {
 			cb(err, false);
 		});
 
+		/* write to the file */
 		cb(null, dir);
 	},
 
