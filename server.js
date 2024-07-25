@@ -44,11 +44,16 @@ const passport = require("passport");
 const PORT = process.env.PORT || 3040;
 
 /* ESTABLISH DATABASE CONNECTION */
+/** if we are using mongoose findByIdAndUpdate() function that we can find and uppdate it on the spot.
+ * 	this function is great for these type of procedures and it depricated by mongoose already.
+ * 	it works fine but gets error in the terminal log, to fix that warning, please add: ```useFindAndModify: false```
+ * 	to the database setup. please see server.js file db connection setup. */
 mongoose
 	.connect(db, {
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useUnifiedTopology: true,
+		/* if u using findByIdAndUpdate, description in the above*/
 		useFindAndModify: false,
 	})
 	.then(console.log(":: MongoDB connection successfull"));
