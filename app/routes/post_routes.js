@@ -58,16 +58,27 @@ router.post(
 	})
 );
 
-/* GET */
+/** Getting all posts, request from Homejs useEffect on submit and liketype change */
 router.get(
 	"/posts",
 	requireToken,
 	asyncHandler(async (req, res, next) => {
-		/* GET PROPERTIES FRO THE HOST */
+		/**
+		 *  here we haveto populated all detailed nested objects
+		 * 	owner, likes, like_owners
+		 */
 		const allPosts = await Post.find()
 			.populate({
 				path: "owner",
-				select: "-accessToken -_id", // Exclude accessToken and _id fields
+				select: "-accessToken -_id",
+			})
+			.populate({
+				path: "likes",
+				populate: {
+					path: "owner",
+					model: "User",
+					select: "-accessToken -_id",
+				},
 			})
 			.exec();
 
@@ -115,8 +126,9 @@ router.put(
 		 * in the array if there is 50 likes its gonna be [false false fasle true ...], so thanks javascript for the find function
 		 * that it will return a single value of the object i am looking for or undefined
 		 */
-		let currentUserLike = thepost.likes.find((like) => like.owner.equals(userId));
+		let currentUserLike = await thepost.likes.find((like) => like.owner.equals(userId));
 
+		console.log("currentUserLike", currentUserLike);
 		/** currentUserLike is going to be true or false in the array, cause map returns array when mapping an array */
 		/** if this is true, it means user has a like on this post
 		 * but if it is false it ill go to else condition which will create a whole new like and updade the post
@@ -128,20 +140,17 @@ router.put(
 			 */
 			if (currentUserLike.reaction === likeType) {
 				/* undo */
-				thepost.likes = thepost.likes.filter((like) => !like.owner.equals(userId));
-
-				/* save the post which undone ther reaction*/
-				await thepost.save();
+				thepost.likes = await thepost.likes.filter((like) => !like.owner.equals(userId));
+				// Remove the like document from the Likes collection
+				await Like.findByIdAndDelete(currentUserLike._id);
 			} else {
 				/* change the reaction */
 				currentUserLike.reaction = likeType;
-
-				//save thepost which the reaction has been changed
-				await thepost.save();
+				await currentUserLike.save(); // Save the updated like document
 			}
 
-			console.log("THEPOST::::>", thepost);
-
+			/* save the post which undone ther reaction*/
+			await thepost.save();
 			/* response resolved */
 			res.status(201).json(true);
 		} else {
@@ -171,30 +180,16 @@ router.put(
 
 			/** Crazyness is happening, i have a thepost already pulled in the above and now
 			 * 	iam getting it again now idea how i can update the provious one with $addToSet shit
-			 * 	so, i am following the old version
-			 */
-
-			/** pulled the existing post object from the database
-			 * 	as mentioned above, the new created like object will be inserted to this related/liked post object.
+			 * 	so, i am following the old version.
 			 *
-			 * 	we are using mongoose findByIdAndUpdate() function that we can find and uppdate it on the spot.
-			 * 	this function is great for these type of procedures and it depricated by mongoose already.
-			 * 	it works fine but gets error in the terminal log, to fix that warning, please add: ```useFindAndModify: false```
-			 * 	to the database setup. please see server.js file db connection setup.
+			 * 	goodnews, I just got rid off the old version that pulls post again.
 			 */
-			const post = await Post.findByIdAndUpdate(
-				/* passing postId to find the post which got liked */
-				postId,
-				/** Use $addToSet to avoid duplicates.
-				 * 	this allowes the one user can do one like type (heart, dislike or funny )
-				 * 	The $addToSet operator in MongoDB is used to add a value to an array only
-				 * 	if the value does not already exist in the array. addToSet checks whole objects to see if its the same not the
-				 * 	specific field. $ne (not equal) checks the only sepecific filed of objects to see if it is duplicated. */
-				{ $addToSet: { likes: newlike } },
 
-				/** Return the updated document */
-				{ new: true }
-			);
+			/* previous version */
+			// const post = await Post.findByIdAndUpdate(postId, { $addToSet: { likes: newlike } }, { new: true });
+
+			/* new version */
+			await thepost.likes.push(newlike._id);
 
 			/** Cleanup functions
 			 * 	so, as we know right now post object is full of deleted like _ids and with the valid one whic we just added.
@@ -209,7 +204,7 @@ router.put(
 			 *
 			 */
 
-			const validLikes = await Like.find({ _id: { $in: post.likes } });
+			const validLikes = await Like.find({ _id: { $in: thepost.likes } });
 
 			/** now, we are mappings thoose array of objeccts  [likeObject, likeObject, likeObject], those like objects are valid
 			 * 	and exsiting. now we are mapping thoose object and returning an array with thoses object _id
@@ -217,12 +212,12 @@ router.put(
 			const validLikeIds = validLikes.map((like) => like._id);
 
 			/** and updating the post likes array with only valid likes  */
-			post.likes = validLikeIds;
+			thepost.likes = validLikeIds;
 
 			/** saving the post */
-			await post.save();
+			await thepost.save();
 
-			console.log("POST::>", post);
+			// console.log("the  ---  thepost::>", thepost);
 
 			/* response resolved */
 			res.status(201).json(true);
