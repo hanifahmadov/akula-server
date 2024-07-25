@@ -49,6 +49,7 @@ mongoose
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useUnifiedTopology: true,
+		useFindAndModify: false,
 	})
 	.then(console.log(":: MongoDB connection successfull"));
 
@@ -88,7 +89,6 @@ app.use(postRoutes);
 /* FOR TEST PERPUSES */
 /* TRY SERVER URL IN THE BROWSER. IF YOU ARE ON LOCAL, TRY localhost:3040  */
 app.get("/", (req, res) => res.json({ message: "welcome to chat akula" }));
-
 
 /* IMPORTANT */
 /* WHEN PAGE RELOAD OF REFRESH, USER TOKEN GET AUTHENTICATED AND REGENRATED */

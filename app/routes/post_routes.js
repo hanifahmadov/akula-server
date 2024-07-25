@@ -16,6 +16,8 @@ const passport = require("passport");
 /*  IMPORTS */
 const { BadCredentialsError, BadParamsError, DuplicateKeyError } = require("../../lib/custom_errors");
 const Post = require("../models/post");
+const Like = require("../models/like");
+
 const chalk = require("chalk");
 const newpost_multer = require("../middlewares/newpost_multer");
 
@@ -37,9 +39,8 @@ router.post(
 		const { _id } = req.user;
 		const { imagename } = req;
 
-			/* check if avatar image is provided or not */
-			const avatarAddress = imagename ? baseurl + "/" + imagename : undefined
-
+		/* check if avatar image is provided or not */
+		const avatarAddress = imagename ? baseurl + "/" + imagename : undefined;
 
 		/* CREATE THE POST */
 		const post = await Post.create({
@@ -68,6 +69,61 @@ router.get(
 
 		// response
 		res.status(201).json({ posts: allPosts });
+	})
+);
+
+/* LIKE POST WITH PUT REQUEST */
+/**
+ * 	GENERAL INFORMATION HERE TOMORROW EXPLAIN WHATS GOING ON
+ */
+router.put(
+	"/posts/:postId/like",
+	requireToken,
+	asyncHandler(async (req, res, next) => {
+		/* GET PROPERTIES FRO THE HOST */
+
+		const { postId } = req.params;
+		const { likeType } = req.body;
+		const { _id: userId } = req.user;
+
+		const newlike = await Like.create({
+			owner: userId,
+			reaction: likeType,
+		});
+
+		const post = await Post.findByIdAndUpdate(
+			postId,
+			{ $addToSet: { likes: newlike } }, // Use $addToSet to avoid duplicates
+			{ new: true } // Return the updated document
+		);
+
+		console.log(post);
+
+		/** mongoose - how to find a specific post and update it
+		 * 	how to get the nested _id properties populate and return fully populated object
+		 *
+		 * i am gonna keep this function here as in comment for future references
+		 *
+		 */
+
+		/**
+			const post = await Post.findByIdAndUpdate(
+				postId,
+				{ $addToSet: { likes: newlike } }, // Use $addToSet to avoid duplicates
+				{ new: true } // Return the updated document
+				.populate({ // Populate the likes field with user detail
+					path: "likes",
+				populate: {
+					path: "owner", // Assuming each like has an owner field
+					model: "User", // Adjust to your user model name
+					select: "-accessToken", // Exclude the accessToken field
+				},
+			});
+
+
+		 */
+
+		res.status(201).json(true);
 	})
 );
 
