@@ -90,6 +90,30 @@ router.put(
 		const { likeType } = req.body;
 		const { _id: userId } = req.user;
 
+		/** Decision Algorithm */
+
+		/** we can have 3 types of likeType [ heart, funny, dislike ]
+		 *
+		 *
+		 * 1. i can get pull the post and with populated all its likes, its gonna [ like{}, like{}, like{}, like{}]
+		 * 	  1a. if no any like below to this user, create one
+		 *
+		 * 	  1b. so, only one user can like one post, that means there is only one like belongs to current user (req.user._id)
+		 *
+		 * 2. iterate that like array and find that like belongs to this user  like { owner, reaction }
+		 *
+		 * 3. if reaction === likeType, delete that like from the likes array
+		 *
+		 * 4. if reaction !== likeType, then update it. and save it. remember reference way to update it.
+		 *
+		 */
+
+
+		/** action 1  */
+		// const thepost = await Post.findById()
+
+
+
 		/** creating a new Like object using the Like mongoose schema, imported this file, above
 		 * 	when user likes the post, the Like object will get created (detailed explanaition in the /models/like.js).
 		 * 	it gets created first. important!
