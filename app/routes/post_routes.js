@@ -43,7 +43,7 @@ router.post(
 		const { _id } = req.user;
 		const { imagename } = req;
 
-		/* check if avatar image is provided or not */
+		/* checking if the avatar image is provided or not */
 		const avatarAddress = imagename ? baseurl + "/" + imagename : undefined;
 
 		/* CREATE THE POST */
@@ -66,14 +66,27 @@ router.get(
 		/**
 		 *  here we haveto populated all detailed nested objects
 		 * 	owner, likes, like_owners
+		 *
+		 * 	explanation: first all posts owner will be populated and then likes will be populated.
+		 * 	its possible to chain the populated functions.
+		 * 	then likes object has a owner property _id (mongoose ID, fyu - only mongoose ID can be populated)
+		 * 	so, we can add another populated property with pass and model and selected option
+		 * 	inside populate() function to get the nested objects populated.
+		 *
+		 * 	fyi - Post.find() will get all posts single first, populate it then will store inside allpost as an array.
 		 */
 		const allPosts = await Post.find()
+			/* all posts has owner and all will get populated */
 			.populate({
 				path: "owner",
 				select: "-accessToken -_id",
 			})
+			/* then the owner populated post has a likes sectiion also that it will get populated here */
 			.populate({
 				path: "likes",
+				/* now that likes populated has also an owner and then the owner will get populated.
+				   path and model important 
+				*/
 				populate: {
 					path: "owner",
 					model: "User",
