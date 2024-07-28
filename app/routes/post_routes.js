@@ -6,8 +6,6 @@ const asyncHandler = require("express-async-handler");
 /* IMPORTS FOR requireTOKEN SETUP LINE 25 */
 const passport = require("passport");
 
-
-
 // const crypto = require("crypto");
 // const passport = require("passport");
 // const jwt = require("jsonwebtoken");
@@ -17,12 +15,11 @@ const passport = require("passport");
 
 /*  IMPORTS */
 const { BadCredentialsError, BadParamsError, DuplicateKeyError } = require("../../lib/custom_errors");
-const Post = require("../models/post");
 
-/** Like schema using creating the Like object when users like the post
- *
- */
+/** Schemas */
 const Like = require("../models/like");
+const Post = require("../models/post");
+const Comment = require("../models/comment");
 
 const chalk = require("chalk");
 const newpost_multer = require("../middlewares/newpost_multer");
@@ -81,7 +78,7 @@ router.get(
 			/* all posts has owner and all will get populated */
 			.populate({
 				path: "owner",
-				select: "-accessToken -_id",
+				select: "-accessToken -hashedPassword",
 			})
 			/* then the owner populated post has a likes sectiion also that it will get populated here */
 			.populate({
@@ -92,9 +89,31 @@ router.get(
 				populate: {
 					path: "owner",
 					model: "User",
-					select: "-accessToken -_id",
+					select: "-accessToken -hashedPassword",
 				},
 			})
+			/* deep nesting root, this is populating the post comments and its owner */
+			.populate({
+				path: "comments",
+				populate: {
+					path: "owner",
+					model: "User",
+					select: "-accessToken -hashedPassword",
+				},
+			})
+			.populate({
+				path: "comments",
+				populate: {
+					path: "replies",
+					model: "Comment",
+					populate: {
+						path: "owner",
+						model: "User",
+						select: "-accessToken -hashedPassword",
+					},
+				},
+			})
+
 			.exec();
 
 		// response
@@ -237,6 +256,134 @@ router.put(
 			/* response resolved */
 			res.status(201).json(true);
 		}
+	})
+);
+
+/** create a new comment for the specific post.
+ *  receiving that post id via URl (req.params) and the data.
+ *  the current user will be attached to req object like req.user
+ */
+router.post(
+	"/posts/:postId/comments",
+	requireToken,
+	/** add multer to handle the picture or any media of the comments if uploaded, later */
+	// newpost_multer.single("image"),
+	asyncHandler(async (req, res, next) => {
+		/* GET PROPERTIES FRO THE HOST */
+		const { commentText } = req.body;
+		/** baseurl need to be sent if the like has a media
+		 *  make sure to handle it by checking if else statement here later
+		 */
+		// const { baseurl } = req.body;
+
+		/* get userId from the req.user object */
+		const { _id: userId } = req.user;
+
+		/* i dont know whats this, i think it gets pasaed from multer lib */
+		// const { imagename } = req;
+
+		/* pull the postId from req.params, from URL */
+		const { postId } = req.params;
+
+		/* handle media address url  */
+		// const mediaAddress = imagename ? baseurl + "/" + imagename : undefined;
+
+		/** create a Comment
+		 *  Comment schema fields ( content, owner-required, media, likes )
+		 *  Comment schema has a pre-save function to check if content or media must be present.
+		 */
+		const comment = await Comment.create({
+			content: commentText,
+			owner: userId,
+		});
+
+		/** now, pull the post related to this comment by post id
+		 * 	add the comment id to that post.
+		 */
+
+		const thepost = await Post.findById(postId);
+
+		/* the post has a comments section data type is array. */
+		await thepost.comments.push(comment._id);
+
+		/* save the updated post */
+		await thepost.save();
+
+		// response
+		res.status(201).json({ created: true });
+	})
+);
+
+/** reply to a specific comment.
+ *  receiving 2 ids the post id and comment id.
+ *
+ * 	user replies a comment in the his/someones post comment section.
+ *
+ *  1. find the post by postId (sending via url)
+ * 	2. find the post's that comment by commendId (sending via url)
+ *  3. create a reply to that comment by adding that reply to comment.replies n save
+ * 	4. save the comment and post both
+ *
+ * 	5. populated all those replies in the about getPosts response
+ *
+ *
+ */
+router.put(
+	"/posts/:postId/comments/:commentId",
+	requireToken,
+	/** add multer to handle the picture or any media of the comments if uploaded, later */
+	// newpost_multer.single("image"),
+	asyncHandler(async (req, res, next) => {
+		/* get both ids from the req.params */
+		const { postId, commentId } = req.params;
+
+		/* get the replyText from the req.boyd */
+		const { replyText } = req.body;
+
+		/* get userId from the req.user object */
+		const { _id: userId } = req.user;
+
+		/* 1. find the post by postId (sending via url)*/
+		const thePost = await Post.findById(postId).populate("comments");
+
+		/** 2. find the post's that comment by commendId (sending via url)
+		 *
+		 * using the js helper functions find() to get a single value, map return an array and forEach doesn return a all
+		 * in this case
+		 * 	await thePost.comments.find(comment => comment._id === com)
+		 * doesnt work, because the id we grabbing from the req.params are just a string
+		 * but comment._id is Mongoose Object Id, different type of id, those are not ===
+		 * in this case we have to use built-in .equal() like this => comment._id .equals(commentId)
+		 * OR use == (checks the value only), not triple === (triple === checks the type and value)
+		 *
+		 */
+		const theComment = await thePost.comments.find((comment) => comment._id == commentId);
+
+		/** 3. create a reply and...
+		 *  Comment schema fields ( content, owner-required, media, likes )
+		 *  Comment schema has a pre-save function to check if content or media must be present.
+		 * 	but for now no need to add another media section to replies (later)
+		 */
+
+		const replyComment = await Comment.create({
+			content: replyText,
+			owner: userId,
+		});
+
+		/*  and add that replyComment to the Comment.replies which has been pulled from dbs in the above*/
+		await theComment.replies.push(replyComment);
+
+		/* and save theComment */
+		await theComment.save();
+
+		/* and save thePost */
+		await thePost.save();
+
+		/* FYI - posts are getting an a huge object that is going to be fucked up when pulling all posts from the database */
+		console.log(thePost);
+
+		// response
+		res.status(201).json({ created: true });
 	})
 );
 

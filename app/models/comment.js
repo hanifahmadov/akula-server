@@ -6,27 +6,34 @@ const commentSchema = new mongoose.Schema(
 		content: {
 			type: String,
 			maxlength: 280, // Twitter-like character limit
+			required: false, // Optional field
 		},
 
 		owner: {
-			type: [mongoose.Schema.Types.ObjectId],
+			type: mongoose.Schema.Types.ObjectId,
 			ref: "User", // Assuming you have a User model
 			required: true,
+		},
+
+		media: {
+			type: String, // URL or path to the image file
+			required: false, // Optional field
+			default: undefined,
 		},
 
 		likes: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "User",
+				required: false, // Optional field
 			},
 		],
 
-        dislikes: [
-			{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "User",
-			},
-		],
+		replies: {
+			type: [mongoose.Schema.Types.ObjectId],
+			ref: "Comment", // Assuming you have a User model
+			required: false,
+		}
 	},
 
 	{
@@ -41,5 +48,17 @@ const commentSchema = new mongoose.Schema(
 		},
 	}
 );
+
+/* this pre function will check if content or media, one of these has a value.
+   if both empty, the comment will not be saved.
+*/
+commentSchema.pre("validate", function (next) {
+	if (!this.content && !this.media) {
+		this.invalidate("content", "Comment must have either content or media.");
+		this.invalidate("media", "Comment must have either content or media.");
+	}
+
+	next();
+});
 
 module.exports = mongoose.model("Comment", commentSchema);
