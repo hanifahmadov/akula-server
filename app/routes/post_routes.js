@@ -135,6 +135,8 @@ router.put(
 		const { likeType } = req.body;
 		const { _id: userId } = req.user;
 
+		console.log(postId);
+
 		/** Decision Algorithm */
 
 		/** we can have 3 types of likeType [ heart, funny, dislike ]
@@ -384,6 +386,88 @@ router.put(
 
 		// response
 		res.status(201).json({ created: true });
+	})
+);
+
+router.put(
+	"/posts/:postId/comments/:commentId/reaction",
+	requireToken,
+	/** add multer to handle the picture or any media of the comments if uploaded, later */
+	// newpost_multer.single("image"),
+	asyncHandler(async (req, res, next) => {
+		/* get both ids from the req.params */
+		const { postId, commentId } = req.params;
+
+		/* get the replyText from the req.boyd */
+		const { likeType } = req.body;
+
+		/* get userId from the req.user object */
+		const { _id: userId } = req.user;
+
+		/* 1. find the post by postId (sending via url)*/
+		let thePost = await Post.findById(postId).populate({
+			path: "comments",
+			populate: {
+				path: "likes",
+				model: "Like",
+				populate: {
+					path: "owner",
+					model: "User",
+					select: "-accessToken -hashedPassword",
+				},
+			},
+		});
+
+		/** 2. find the post's that comment by commendId (sending via url)
+		 *
+		 * using the js helper functions find() to get a single value, map return an array and forEach doesn return a all
+		 * in this case
+		 * 	await thePost.comments.find(comment => comment._id === com)
+		 * doesnt work, because the id we grabbing from the req.params are just a string
+		 * but comment._id is Mongoose Object Id, different type of id, those are not ===
+		 * in this case we have to use built-in .equal() like this => comment._id .equals(commentId)
+		 * OR use == (checks the value only), not triple === (triple === checks the type and value)
+		 *
+		 */
+
+		/* what if the comments is [], find has 2 return only, the value or undefined, doesnt care unavailable porperty*/
+		let theComment = await thePost.comments.find((comment) => comment._id.equals(commentId));
+
+		/* find the current user's like  */
+		let theLike = await theComment.likes.find((like) => like.owner._id.equals(userId));
+
+		/* if there is a like belongs to current user, update the type or undo*/
+		if (theLike) {
+			if (theLike.reaction == likeType) {
+				// undo
+				theComment = await theComment.likes.filter((like) => !like.owner._id.equals(userId));
+
+				// Remove the like document from the Likes collection
+				await Like.findByIdAndDelete(theLike._id);
+			} else {
+				// update
+				theLike.reaction = likeType;
+
+				/* save the Like */
+				await theLike.save();
+			}
+		} else {
+			/* Create new Like */
+			const newlike = await Like.create({
+				owner: userId,
+				reaction: likeType,
+			});
+
+			// /* add it into comments like array */
+			await theComment.likes.push(newlike);
+			// /* save */
+			await theComment.save();
+		}
+
+		await thePost.save();
+
+		// response
+		res.status(201).json({ created: thePost });
 	})
 );
 
