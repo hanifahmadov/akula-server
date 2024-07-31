@@ -75,26 +75,12 @@ router.get(
 		 * 	fyi - Post.find() will get all posts single first, populate it then will store inside allpost as an array.
 		 */
 		const allPosts = await Post.find()
-			/* all posts has owner and all will get populated */
 			.populate({
 				path: "owner",
 				select: "-accessToken -hashedPassword",
 			})
-			/* then the owner populated post has a likes sectiion also that it will get populated here */
 			.populate({
 				path: "likes",
-				/* now that likes populated has also an owner and then the owner will get populated.
-				   path and model important 
-				*/
-				populate: {
-					path: "owner",
-					model: "User",
-					select: "-accessToken -hashedPassword",
-				},
-			})
-			/* deep nesting root, this is populating the post comments and its owner */
-			.populate({
-				path: "comments",
 				populate: {
 					path: "owner",
 					model: "User",
@@ -103,17 +89,32 @@ router.get(
 			})
 			.populate({
 				path: "comments",
-				populate: {
-					path: "replies",
-					model: "Comment",
-					populate: {
+				populate: [
+					{
 						path: "owner",
 						model: "User",
 						select: "-accessToken -hashedPassword",
 					},
-				},
+					{
+						path: "replies",
+						model: "Comment",
+						populate: {
+							path: "owner",
+							model: "User",
+							select: "-accessToken -hashedPassword",
+						},
+					},
+					{
+						path: "likes",
+						model: "Like",
+						populate: {
+							path: "owner",
+							model: "User",
+							select: "-accessToken -hashedPassword",
+						},
+					},
+				],
 			})
-
 			.exec();
 
 		// response

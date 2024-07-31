@@ -24,7 +24,7 @@ const commentSchema = new mongoose.Schema(
 		likes: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
-				ref: "User",
+				ref: "Like",
 				required: false, // Optional field
 			},
 		],
@@ -33,7 +33,26 @@ const commentSchema = new mongoose.Schema(
 			type: [mongoose.Schema.Types.ObjectId],
 			ref: "Comment", // Assuming you have a User model
 			required: false,
-		}
+		},
+
+		// refers: {
+		// 	type: mongoose.Schema.Types.ObjectId,
+		// 	ref: "User",
+		// 	required: false, // Optional field
+		// 	default: undefined,
+		// },
+
+		// parentPost: {
+		// 	type: mongoose.Schema.Types.ObjectId,
+		// 	ref: "Post",
+		// 	required: true, // Optional field
+		// },
+
+		// parentComment: {
+		// 	type: mongoose.Schema.Types.ObjectId,
+		// 	ref: "Comment", // Assuming you have a User model
+		// 	required: true,
+		// },
 	},
 
 	{

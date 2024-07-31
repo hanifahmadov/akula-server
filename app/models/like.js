@@ -6,8 +6,8 @@ const reactionTypes = ["heart", "smile", "dislike", "wow", "sad", "angry"];
 const LikeSchema = new Schema(
 	{
 		owner: {
-			type: Schema.Types.ObjectId,
-			ref: "User",
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User", // Assuming you have a User model
 			required: true,
 		},
 
