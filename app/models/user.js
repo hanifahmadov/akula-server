@@ -43,6 +43,8 @@ const userSchema = new mongoose.Schema(
 			trim: true,
 		},
 
+
+
 		blocked: {
 			type: Boolean,
 			default: false,
@@ -66,6 +68,12 @@ const userSchema = new mongoose.Schema(
 				ref: "User",
 			},
 		],
+
+		notifications: [
+			{
+				
+			}
+		]
 	},
 
 	{

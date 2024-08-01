@@ -54,10 +54,15 @@ const fileFilter = (req, file, cb) => {
 		"image/jpeg",
 		"image/png",
 		"image/gif",
+		"image/avif",
+		"image/webp",
+
 		"image.jpg",
 		"image.jpeg",
 		"image.png",
 		"image.gif",
+		"image.avif",
+		"image.webp",
 
 		/* TODO */
 		/* add extra mimetypes */

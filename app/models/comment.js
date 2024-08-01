@@ -35,12 +35,12 @@ const commentSchema = new mongoose.Schema(
 			required: false,
 		},
 
-		// refers: {
-		// 	type: mongoose.Schema.Types.ObjectId,
-		// 	ref: "User",
-		// 	required: false, // Optional field
-		// 	default: undefined,
-		// },
+		referral: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			required: false, // Optional field
+			default: undefined,
+		},
 
 		// parentPost: {
 		// 	type: mongoose.Schema.Types.ObjectId,

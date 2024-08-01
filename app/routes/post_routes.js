@@ -98,11 +98,19 @@ router.get(
 					{
 						path: "replies",
 						model: "Comment",
-						populate: {
-							path: "owner",
-							model: "User",
-							select: "-accessToken -hashedPassword",
-						},
+						populate: [
+							{
+								path: "owner",
+								model: "User",
+								select: "-accessToken -hashedPassword",
+							},
+
+							{
+								path: "referral",
+								model: "User",
+								select: "-accessToken -hashedPassword",
+							},
+						],
 					},
 					{
 						path: "likes",
@@ -267,43 +275,23 @@ router.put(
  *  the current user will be attached to req object like req.user
  */
 router.post(
-	"/posts/:postId/comments",
+	"/posts/:postId/addcomment",
 	requireToken,
 	/** add multer to handle the picture or any media of the comments if uploaded, later */
 	// newpost_multer.single("image"),
 	asyncHandler(async (req, res, next) => {
 		/* GET PROPERTIES FRO THE HOST */
 		const { commentText } = req.body;
-		/** baseurl need to be sent if the like has a media
-		 *  make sure to handle it by checking if else statement here later
-		 */
-		// const { baseurl } = req.body;
-
-		/* get userId from the req.user object */
 		const { _id: userId } = req.user;
-
-		/* i dont know whats this, i think it gets pasaed from multer lib */
-		// const { imagename } = req;
-
-		/* pull the postId from req.params, from URL */
 		const { postId } = req.params;
 
-		/* handle media address url  */
-		// const mediaAddress = imagename ? baseurl + "/" + imagename : undefined;
-
-		/** create a Comment
-		 *  Comment schema fields ( content, owner-required, media, likes )
-		 *  Comment schema has a pre-save function to check if content or media must be present.
-		 */
+		/** create a Comment */
 		const comment = await Comment.create({
 			content: commentText,
 			owner: userId,
 		});
 
-		/** now, pull the post related to this comment by post id
-		 * 	add the comment id to that post.
-		 */
-
+		/** now, pull the post */
 		const thepost = await Post.findById(postId);
 
 		/* the post has a comments section data type is array. */
@@ -387,88 +375,6 @@ router.put(
 
 		// response
 		res.status(201).json({ created: true });
-	})
-);
-
-router.put(
-	"/posts/:postId/comments/:commentId/reaction",
-	requireToken,
-	/** add multer to handle the picture or any media of the comments if uploaded, later */
-	// newpost_multer.single("image"),
-	asyncHandler(async (req, res, next) => {
-		/* get both ids from the req.params */
-		const { postId, commentId } = req.params;
-
-		/* get the replyText from the req.boyd */
-		const { likeType } = req.body;
-
-		/* get userId from the req.user object */
-		const { _id: userId } = req.user;
-
-		/* 1. find the post by postId (sending via url)*/
-		let thePost = await Post.findById(postId).populate({
-			path: "comments",
-			populate: {
-				path: "likes",
-				model: "Like",
-				populate: {
-					path: "owner",
-					model: "User",
-					select: "-accessToken -hashedPassword",
-				},
-			},
-		});
-
-		/** 2. find the post's that comment by commendId (sending via url)
-		 *
-		 * using the js helper functions find() to get a single value, map return an array and forEach doesn return a all
-		 * in this case
-		 * 	await thePost.comments.find(comment => comment._id === com)
-		 * doesnt work, because the id we grabbing from the req.params are just a string
-		 * but comment._id is Mongoose Object Id, different type of id, those are not ===
-		 * in this case we have to use built-in .equal() like this => comment._id .equals(commentId)
-		 * OR use == (checks the value only), not triple === (triple === checks the type and value)
-		 *
-		 */
-
-		/* what if the comments is [], find has 2 return only, the value or undefined, doesnt care unavailable porperty*/
-		let theComment = await thePost.comments.find((comment) => comment._id.equals(commentId));
-
-		/* find the current user's like  */
-		let theLike = await theComment.likes.find((like) => like.owner._id.equals(userId));
-
-		/* if there is a like belongs to current user, update the type or undo*/
-		if (theLike) {
-			if (theLike.reaction == likeType) {
-				// undo
-				theComment = await theComment.likes.filter((like) => !like.owner._id.equals(userId));
-
-				// Remove the like document from the Likes collection
-				await Like.findByIdAndDelete(theLike._id);
-			} else {
-				// update
-				theLike.reaction = likeType;
-
-				/* save the Like */
-				await theLike.save();
-			}
-		} else {
-			/* Create new Like */
-			const newlike = await Like.create({
-				owner: userId,
-				reaction: likeType,
-			});
-
-			// /* add it into comments like array */
-			await theComment.likes.push(newlike);
-			// /* save */
-			await theComment.save();
-		}
-
-		await thePost.save();
-
-		// response
-		res.status(201).json({ created: thePost });
 	})
 );
 

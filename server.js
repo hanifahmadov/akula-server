@@ -28,6 +28,7 @@ const userRoutes = require("./app/routes/user_routes");
 const authRoutes = require("./app/routes/auth_routes");
 const postRoutes = require("./app/routes/post_routes");
 const replyRoutes = require("./app/routes/reply_routes");
+const commentRoutes = require("./app/routes/commet_routes");
 
 /* CROSS PLATFORM ACCESS */
 const corsOptions = require("./config/corsOptions");
@@ -107,6 +108,10 @@ app.use(postRoutes);
 /* IMPORTANT */
 /* ALL REPLY REQUESTS */
 app.use(replyRoutes);
+
+/* IMPORTANT */
+/* ALL REPLY REQUESTS */
+app.use(commentRoutes);
 
 /* IMPORTANT */
 /* ERROR HANDLER AT THE END */
