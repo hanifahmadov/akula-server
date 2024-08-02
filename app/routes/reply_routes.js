@@ -110,4 +110,45 @@ router.post(
 	})
 );
 
+// url: `${apiUrl}/replies/${replyId}/add_sub_reply`,
+
+router.post(
+	"/replies/:replyId/add_sub_reply",
+	requireToken,
+	asyncHandler(async (req, res, next) => {
+		/** get all properties */
+		const { replyId } = req.params;
+		const { replyText, referralId, storageId } = req.body;
+		const { _id: userId } = req.user;
+
+
+		/* get the replied-comment */
+		const theComment = await Comment.findById(storageId);
+
+
+		/* create reply - its also a comment */
+		const newComment = await Comment.create({
+			content: replyText,
+			referral: referralId,
+			owner: userId,
+		});
+
+		/* add to replies */
+		await theComment.replies.push(newComment._id);
+
+		/* save */
+		await theComment.save();
+
+		// response
+		res.status(201).json({ created: true });
+	})
+);
+
+
 module.exports = router;
+
+
+
+
+
+
