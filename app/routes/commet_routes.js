@@ -89,7 +89,7 @@ router.post(
 	asyncHandler(async (req, res, next) => {
 		/** get all properties */
 		const { commentId } = req.params;
-		const { replyText, referralId } = req.body;
+		const { replyText } = req.body;
 		const { _id: userId } = req.user;
 
 		/* get the comment */
@@ -98,7 +98,6 @@ router.post(
 		/* create reply - its also a comment */
 		const newComment = await Comment.create({
 			content: replyText,
-			referral: mongoose.Types.ObjectId(referralId),
 			owner: userId,
 		});
 

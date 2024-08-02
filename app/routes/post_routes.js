@@ -104,11 +104,51 @@ router.get(
 								model: "User",
 								select: "-accessToken -hashedPassword",
 							},
+							{
+								path: "likes",
+								model: "Like",
+								populate: [
+									{
+										path: "owner",
+										model: "User",
+										select: "-accessToken -hashedPassword",
+									},
+								],
+							},
 
 							{
 								path: "referral",
 								model: "User",
 								select: "-accessToken -hashedPassword",
+							},
+
+							{
+								path: "replies",
+								model: "Comment",
+								populate: [
+									{
+										path: "owner",
+										model: "User",
+										select: "-accessToken -hashedPassword",
+									},
+
+									{
+										path: "referral",
+										model: "User",
+										select: "-accessToken -hashedPassword",
+									},
+									{
+										path: "likes",
+										model: "Like",
+										populate: [
+											{
+												path: "owner",
+												model: "User",
+												select: "-accessToken -hashedPassword",
+											},
+										],
+									},
+								],
 							},
 						],
 					},

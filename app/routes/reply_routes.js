@@ -30,28 +30,83 @@ router.put(
 		const { _id: userId } = req.user;
 
 		/** retrieve valid data */
-		const theReply = await Comment.findById(replyId)
+		let theReply = await Comment.findById(replyId).populate({ path: "likes", model: "Like" });
 
-		console.log("heyy, reply", theReply);
+		/* find the current user's like */
+		let theLike = await theReply.likes.find((like) => like.owner._id.equals(userId));
 
-		/* find the curr user's like */
-		// let currUserLike = await theReply.likes.find((like) => like.owner._id.equals(userId));
 
-		// console.log("heyy, currUserLikes", currUserLike);
+		/* if user has a like, then just update it */
+		if (theLike) {
+			/* if the same likeType, remove the like */
+			if (theLike.reaction == likeType) {
+				/* remove from the array */
+				theReply.likes = await theReply.likes.filter((like) => !like.owner._id.equals(userId));
 
-		/** create new Like */
-		// const newLike = await Like.create({
-		// 	owner: userId,
-		// 	reaction: likeType,
-		// });
+				/* delete that like itself */
+				await Like.findByIdAndDelete(theLike._id);
+			} else {
+				/* if likeType is different, then update it */
+				theLike.reaction = likeType;
 
-		// /** add it to the reply likes array */
-		// await theReply.likes.push(newLike._id);
+				/** save theLike here,
+				 *  cause if theLike is undefined,
+				 *  cant get saved all the way down
+				 * */
+				await theLike.save();
+			}
+		} else {
+			/* else means there is no like belongs to this user, so create one */
+			/** create new Like */
+			const newLike = await Like.create({
+				owner: userId,
+				reaction: likeType,
+			});
 
-		// await theReply.save()
+			/** add it to the reply likes array */
+			await theReply.likes.push(newLike._id);
+		}
+
+		
+		/* save all shits */
+		await theReply.save();
 
 		// response
 		res.status(201).json({ created: theReply });
+	})
+);
+
+
+
+router.post(
+	"/replies/:rereplyid/addrereply",
+	requireToken,
+	asyncHandler(async (req, res, next) => {
+		/** get all properties */
+		const { rereplyid } = req.params;
+		const { reReplyText, referralId} = req.body;
+		const { _id: userId } = req.user;
+
+
+
+		/* get the comment */
+		const theReReply = await Comment.findById(rereplyid);
+
+		/* create reply - its also a comment */
+		const newComment = await Comment.create({
+			content: reReplyText,
+			referral: referralId,
+			owner: userId,
+		});
+
+		/* add to replies */
+		await theReReply.replies.push(newComment._id);
+
+		/* save */
+		await theReReply.save();
+
+		// response
+		res.status(201).json({ created: true });
 	})
 );
 
