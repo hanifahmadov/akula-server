@@ -83,21 +83,30 @@ router.put(
 	})
 );
 
+/**
+ * 	addReplyAPI
+ * 	client side calls
+ *
+ * */
 router.post(
 	"/comments/:commentId/addreply",
 	requireToken,
 	asyncHandler(async (req, res, next) => {
 		/** get all properties */
 		const { commentId } = req.params;
-		const { replyText } = req.body;
+		const { replyText, referralId } = req.body;
 		const { _id: userId } = req.user;
 
 		/* get the comment */
 		const theComment = await Comment.findById(commentId);
 
-		/* create reply - its also a comment */
+		console.log(referralId)
+
+
+		// /* create reply - its also a comment */
 		const newComment = await Comment.create({
 			content: replyText,
+			referral: referralId,
 			owner: userId,
 		});
 
@@ -106,6 +115,8 @@ router.post(
 
 		/* save */
 		await theComment.save();
+
+
 
 		// response
 		res.status(201).json({ created: true });
