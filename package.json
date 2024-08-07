@@ -10,8 +10,7 @@
 		"server": "nodemon server.js",
 		"serve": "nodemon server.js",
 		"s": "nodemon server.js",
-		"debug-server": "DEBUG=express:* nodemon server.js",
-
+		"debug-server": "DEBUG=express:* nodemon server.js"
 	},
 	"author": "haniff",
 	"license": "ISC",
