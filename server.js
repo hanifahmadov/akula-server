@@ -60,7 +60,7 @@ mongoose
 const app = express();
 
 /* CORS OPTIONS APPLIED */
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 /* COOKIES APPLIED */
 app.use(cookies());
@@ -89,7 +89,7 @@ app.use(requestLogger);
 
 /* FOR TEST PERPUSES */
 /* TRY SERVER URL IN THE BROWSER. IF YOU ARE ON LOCAL, TRY localhost:3040  */
-app.get("/", (req, res) => res.json({ message: "welcome to chat akula" }));
+app.get("/", (req, res) => res.json({ message: "welcome to chat POLAR-X" }));
 
 /* IMPORTANT */
 /* WHEN PAGE RELOAD OF REFRESH, USER TOKEN GET AUTHENTICATED AND REGENRATED */
@@ -119,6 +119,6 @@ app.use(errorHandler);
 // });
 
 
-app.listen(8080, async () => {
+app.listen("8080", async () => {
 	console.log(":: Server running on port", PORT);
 });
