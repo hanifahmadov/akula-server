@@ -2,7 +2,7 @@
 const allowedOrigins = [ 
     process.env.CLIENT_DEV_ORIGIN,
     process.env.CLIENT_PRO_ORIGIN,
-    // "https://project.rabclient.hanifahmadov.com",
+    "https://polarx.hanifahmadov.site",
 ]
 
 const corsOptions = {
