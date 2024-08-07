@@ -60,7 +60,7 @@ mongoose
 const app = express();
 
 /* CORS OPTIONS APPLIED */
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 /* COOKIES APPLIED */
 app.use(cookies());
@@ -112,10 +112,7 @@ app.use(errorHandler);
 
 /* APP LISTENS */
 /* IF MODE IS NOT PRODUCTION, SERVER RUNS ON LOCALHOST, LOCALHOST IS 127.0.0.1 */
-// app.listen(PORT, "127.0.0.1", async () => {
-// 	console.log(":: Server running on port", PORT);
-// });
-
-app.listen(PORT, "0.0.0.0", async () => {
+app.listen(PORT, "127.0.0.1", async () => {
 	console.log(":: Server running on port", PORT);
 });
+
