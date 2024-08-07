@@ -86,7 +86,6 @@ app.use(express.static(path.join(__dirname, "public/posts")));
 /* LOGS EVERY REQUESTS */
 app.use(requestLogger);
 
-
 /* FOR TEST PERPUSES */
 /* TRY SERVER URL IN THE BROWSER. IF YOU ARE ON LOCAL, TRY localhost:3040  */
 app.get("/", (req, res) => res.json({ message: "welcome to chat POLAR-X" }));
@@ -103,7 +102,6 @@ app.use(userRoutes);
 /* ALL POSTS REQUESTS */
 app.use(postRoutes);
 
-
 /* IMPORTANT */
 /* ALL REPLY REQUESTS */
 app.use(commentRoutes);
@@ -118,7 +116,6 @@ app.use(errorHandler);
 // 	console.log(":: Server running on port", PORT);
 // });
 
-
-app.listen(8181, async () => {
+app.listen(8181, "0.0.0.0", async () => {
 	console.log(":: Server running on port", PORT);
 });
