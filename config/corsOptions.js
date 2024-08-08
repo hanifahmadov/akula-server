@@ -2,7 +2,11 @@
 const allowedOrigins = [ 
     process.env.CLIENT_DEV_ORIGIN,
     process.env.CLIENT_PRO_ORIGIN,
+    "https://www.polarx.hanifahmadov.site",
     "https://polarx.hanifahmadov.site",
+    "http://www.polarx.hanifahmadov.site",
+    "http://polarx.hanifahmadov.site",
+    "52.22.120.131",
 ]
 
 const corsOptions = {
